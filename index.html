@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+
+		<script src="js/jquery-1.8.0.min.js" type="text/javascript" charset="utf-8"></script>
+		<link rel="stylesheet" type="text/css" href="css/yangshi.css" />
+		<link rel="stylesheet" type="text/css" href="css/bt.min.css"/>
+		<script src="js/sendmessage.js" type="text/javascript" charset="utf-8"></script>
+		<script src="js/jq2.0.0.min.js" type="text/javascript" charset="utf-8"></script>
+		<meta http-equiv="content-type" content="text/html;charset=utf-8">
+		<title></title>
+	</head>
+
+	<body>
+
+		<div id="top">
+			<img src="imgs/huati.png" />
+		</div>
+		<div id="body">
+			<div id="geren">
+				<div id="user">
+					<a href="load.php" id="wdl">请登录</a>
+
+					<a href="" id="ydl"></a>
+					<a href="" id="zx">注销</a>
+				</div>
+				<div id="">
+					请输入要添加的用户名:<input type="text" name="username" id="haoyouid" /><br>
+					<button id="jiahaoyou">添加</button>
+				</div>
+			</div>
+			<div id="xinxi">
+				<div id="haoyoulb">
+					<ul>
+						<li>majian<button class="send">send</button></li>
+						<li>majian</li>
+					</ul>
+				</div>
+				<div id="haoyoudt">
+					<h2>好友动态</h2>
+					<div id="fabiaodt">
+						<textarea id="fasongneirong" name="" rows="3" cols="40"></textarea>
+						<button id="senddt">发送动态</button>
+					</div>
+					<div id="haoyoudt1">
+						<ul>
+							<li id="medium"></li>
+						</ul>
+					</div>
+				</div>
+				<div id="zuireht">
+                    <a>查看话题</a>
+					<h2>较热话题</h2>
+				</div>
+			</div>
+		</div>
+	</body>
+	<script type="text/javascript">
+		var dl = 0;
+		var uid="";
+		//登陆
+		$(function() {
+			$.ajax({
+				//判断是否已经的登陆或注销
+				url: "pdzx.php",
+				type: "post",
+				dataType: "text",
+				success: function(data) {
+					console.log(data);
+					//	alert(data);
+
+					if(data == "error") {
+						alert("请登录");
+					} else {
+						uid=data;
+						dl = 1;
+						$("#wdl").css("visibility", "hidden");
+
+						$("#ydl").css("visibility", "visible");
+						$("#zx").css("visibility", "visible");
+						$("#ydl").append(data);
+						hylb();
+					}
+				}
+			});
+			$.ajax({
+				//拉取好友列表
+				url: "hylb.php",
+				type: "post",
+				dataType: "text",
+				success: function(data) {
+					console.log(data);
+				}
+			});
+		});
+
+		//注销
+		$("#zx").click(function() {
+			$.ajax({
+				url: "zhuxiao.php",
+				type: "post",
+				dataType: "text",
+				success: function(data) {
+					console.log(data);
+					//	alert(data);
+
+					if(data == "zxcg") {
+						$("#wdl").css("visibility", "visible");
+
+						$("#ydl").css("visibility", "hidden");
+						$("#zx").css("visibility", "hidden");
+						alert("请登录");
+					}
+
+				}
+			});
+		});
+		//发送动态
+		$("#senddt").click(function(){
+			var nr = $("#fasongneirong").val();
+			var username =uid;
+			if(uid == ""){
+				alert("请先登录");
+			}
+			else{
+				console.log(nr);
+				console.log(username);
+				$.ajax({
+					url:"hydt.php",
+					type:"post",
+					data:{
+						user:username,
+						neirong:nr
+					},
+					dateType:"text",
+					success:function(date){
+						console.log(123);
+						console.log(date);
+						if(date == "yes"){
+							alert("发送成功");
+							$("#fasongneirong").val('');
+
+						}
+						if(date == "no"){
+							alert("发送失败");
+						}
+					}
+				});
+			}
+
+		});
+
+		$("#jiahaoyou").click(function() {
+			var user = $("#haoyouid").val();//要添加的id
+			var user1 = uid;//用户id
+			console.log(user);
+            console.log(user1);
+			if(user == "") {
+				alert("请输入你要添加的用户");
+			} else {
+				$.ajax({
+					url: "jiahaoyou.php",
+					type: "post",
+					data: {
+						username: user,
+						username1: user1
+					},
+					dataType: "text",
+					success: function(data) {
+						console.log(data);
+						alert(data);
+						if(data == "t") {
+							alert("你们已经是好友了！");
+						}
+						if(data == "f") {
+							alert("已发送请求");
+						}
+						if(data == "fs") {
+							alert("请求成功");
+						}
+						if(data == "sb") {
+							alert("添加失败");
+						}
+                        if(data == "no") {
+                            alert("没有该用户");
+                        }
+					}
+				});
+			}
+
+		})
+		function hylb(){
+			if(dl==1){
+				var user = uid;
+				console.log(user);
+					$.ajax({
+					url:"hydtcx.php",
+					type:"post",
+					data:{username: user},
+					dateType:"text",
+					success:function(date){
+						console.log(date);
+						if(date == ""){
+							alert("无好友动态");
+							
+
+						}
+						else{
+							var jsondongtai = JSON.parse(date);
+							//console.log(JSON.parse(date));
+							for(var dt in jsondongtai){
+								var time = new Date(parseInt(jsondongtai[dt]["date"]) * 1000).toLocaleString().substr(0,17);
+								$("#medium").append("<li class='hydt'><h1 class='dtid'>"+jsondongtai[dt]["id"]+"</h1><div class = 'userid'>"+jsondongtai[dt]["username"]+"</div><div class='dtneirong'>"+jsondongtai[dt]["neirong"]+"</div><div><button class='checkpinglun btn btn-primary' >查看评论</button></div><p>"+time+"</p></li>");
+								
+								console.log(time);
+								
+							}
+							
+						}
+					}
+				});
+			}
+			
+		}
+	</script>
+
+</html>
